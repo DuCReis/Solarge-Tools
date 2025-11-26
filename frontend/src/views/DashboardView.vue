@@ -118,6 +118,7 @@ import { useMachinesStore } from '@/stores/machinesStore.js';
 import { usePeelForceStore } from '@/stores/peelForceStore.js';
 import { useRejectionsStore } from '@/stores/stringRejectionsStore.js';
 import { useLayupEventsStore } from '@/stores/layupEventsStore.js';
+import {useAuthStore} from "@/stores/authStore.js";
 
 const machinesStore = useMachinesStore();
 const peelStore = usePeelForceStore();
@@ -129,6 +130,8 @@ const machinesCount = computed(() => machinesStore.list.length || 0);
 const peelCount = computed(() => peelStore.list.length || 0);
 const rejectionsCount = computed(() => rejectionsStore.list.length || 0);
 const layupEventsCount = computed(() => layupEventsStore.list.length || 0);
+
+const auth = useAuthStore();
 
 // Normalização de eventos para uma lista comum
 const lastEvents = computed(() => {
@@ -207,6 +210,9 @@ function badgeClass(kind) {
 
 // Carregar dados na entrada da dashboard
 onMounted(async () => {
+  if (!auth.isAuthenticated) {
+    return;
+  }
   // Não forço filtros, só busco "default" (últimos registos)
   if (!machinesStore.list.length) {
     await machinesStore.loadMachines();

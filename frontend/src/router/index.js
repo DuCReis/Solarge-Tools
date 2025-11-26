@@ -1,5 +1,6 @@
-// src/router/index.js
+// frontend/src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
+import { useAuthStore } from '@/stores/authStore.js';
 
 import LoginView from '@/views/LoginView.vue';
 import DashboardLayout from '@/layouts/DashboardLayout.vue';
@@ -16,14 +17,14 @@ import RibbonSpoolsView from '@/views/RibbonSpoolsView.vue';
 const router = createRouter({
     history: createWebHistory(),
     routes: [
-        // Login sem layout
+        // LOGIN — única rota pública
         {
             path: '/login',
             name: 'login',
             component: LoginView,
         },
 
-        // Tudo o resto usa o layout com sidebar
+        // RESTO — tudo protegido
         {
             path: '/',
             component: DashboardLayout,
@@ -32,87 +33,76 @@ const router = createRouter({
                     path: '',
                     name: 'dashboard',
                     component: DashboardView,
-                    meta: {
-                        title: 'Dashboard',
-                        subtitle: 'Visão geral das máquinas e eventos registados',
-                    },
                 },
                 {
                     path: 'peel-force',
                     name: 'peel-force',
                     component: PeelForceView,
-                    meta: {
-                        title: 'Peel Force',
-                        subtitle: 'Medições de peel force por máquina / receita',
-                    },
                 },
                 {
                     path: 'string-rejections',
                     name: 'string-rejections',
                     component: RejectionsView,
-                    meta: {
-                        title: 'String rejections',
-                        subtitle: 'MC, UPS, RM, BC, good strings rejeitadas, etc.',
-                    },
                 },
                 {
                     path: 'layup-events',
                     name: 'layup-events',
                     component: LayupEventsView,
-                    meta: {
-                        title: 'Layup events',
-                        subtitle: 'Eventos de layup (skew, missing mesh, wrong cell, ...)',
-                    },
                 },
                 {
                     path: 'snapshots',
                     name: 'snapshots',
                     component: SnapshotsView,
-                    meta: {
-                        title: 'Machine snapshots',
-                        subtitle:
-                            'Registo manual de contadores/tempos a partir do HMI das máquinas',
-                    },
                 },
                 {
                     path: 'recipe-changes',
                     name: 'recipe-changes',
                     component: RecipeChangesView,
-                    meta: {
-                        title: 'Recipe changes',
-                        subtitle:
-                            'Histórico de alterações de receita da stringer / layup',
-                    },
                 },
                 {
                     path: 'maintenance',
                     name: 'maintenance',
                     component: MaintenanceView,
-                    meta: {
-                        title: 'Maintenance / Logs',
-                        subtitle:
-                            'Registos de manutenção preventiva / corretiva e paragens',
-                    },
                 },
                 {
                     path: 'ribbon-spools',
                     name: 'ribbon-spools',
                     component: RibbonSpoolsView,
-                    meta: {
-                        title: 'Ribbon spools',
-                        subtitle:
-                            'Gestão de bobines de ribbon por batch, peso, consumo, etc.',
-                    },
                 },
             ],
         },
 
-        // 404 → volta ao dashboard
+        // Qualquer caminho estranho → login
         {
             path: '/:pathMatch(.*)*',
-            redirect: '/',
+            redirect: '/login',
         },
     ],
+});
+
+// Guard global
+router.beforeEach((to, from, next) => {
+    const auth = useAuthStore();
+    const isLoggedIn = auth.isAuthenticated;
+
+    // 1) /login é sempre acessível (mas se já estiver logado, redireciona)
+    if (to.name === 'login') {
+        if (isLoggedIn) {
+            return next({ name: 'dashboard' });
+        }
+        return next();
+    }
+
+    // 2) Qualquer outra rota → precisa estar autenticado
+    if (!isLoggedIn) {
+        return next({
+            name: 'login',
+            query: { redirect: to.fullPath },
+        });
+    }
+
+    // 3) Autenticado → segue
+    next();
 });
 
 export default router;
