@@ -24,12 +24,15 @@ export default (sequelize, DataTypes) => {
             defaultValue: 'operator'
         }
     }, {
-        tableName: 'Users',   // Tabela em maiúscula
+        tableName: 'users',   // Tabela em maiúscula
         underscored: true,    // created_at / updated_at
     });
 
     User.associate = (models) => {
-        // No futuro: relações com snapshots, etc.
+        User.hasMany(models.MachineProductionSnapshot, {
+            foreignKey: 'operator_id',
+            as: 'productionSnapshots',
+        });
     };
 
     return User;

@@ -13,6 +13,8 @@ import SnapshotsView from '@/views/SnapshotsView.vue';
 import RecipeChangesView from '@/views/RecipeChangesView.vue';
 import MaintenanceView from '@/views/MaintenanceView.vue';
 import RibbonSpoolsView from '@/views/RibbonSpoolsView.vue';
+import PeelForceDetailView from '@/views/PeelForceDetailView.vue';
+
 
 const router = createRouter({
     history: createWebHistory(),
@@ -38,6 +40,11 @@ const router = createRouter({
                     path: 'peel-force',
                     name: 'peel-force',
                     component: PeelForceView,
+                },
+                {
+                    path: 'peel-force/:id',
+                    name: 'peel-force-detail',
+                    component: PeelForceDetailView,
                 },
                 {
                     path: 'string-rejections',

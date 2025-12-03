@@ -1,370 +1,721 @@
-<!-- frontend/src/views/PeelForceView.vue -->
 <template>
-  <div class="p-6 space-y-6">
-    <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold">Peel Force Measurements</h1>
-      <button class="px-4 py-2 rounded bg-blue-600 text-white" @click="showForm = true">
-        + Nova Medição
+  <div class="space-y-6">
+    <!-- Header -->
+    <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-xl font-semibold text-zinc-50">Peel Force</h1>
+        <p class="text-sm text-zinc-400">
+          Registration and analysis of peel force tests per machine and cell type.
+        </p>
+      </div>
+
+      <button
+          type="button"
+          class="inline-flex items-center justify-center rounded-lg border border-zinc-700
+               bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-50 shadow-sm
+               hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          @click="openForm"
+      >
+        + New test
       </button>
-    </div>
+    </header>
 
-    <!-- Filtros -->
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 bg-slate-800/40 p-4 rounded-lg">
-      <select
-          v-model="filters.machineId"
-          class="px-3 py-2 rounded bg-slate-900 border border-slate-700 text-sm"
-          @change="load"
-      >
-        <option value="">Máquina</option>
-        <option v-for="m in machinesStore.list" :key="m.id" :value="m.id">
-          {{ m.code }} - {{ m.name }}
-        </option>
-      </select>
-
-      <select
-          v-model="filters.cellType"
-          class="px-3 py-2 rounded bg-slate-900 border border-slate-700 text-sm"
-          @change="applyLocalFilter"
-      >
-        <option value="">Cell type</option>
-        <option value="PERC">PERC</option>
-        <option value="TOPCON">TOPCON</option>
-      </select>
-
-      <select
-          v-model="filters.zone"
-          class="px-3 py-2 rounded bg-slate-900 border border-slate-700 text-sm"
-          @change="applyLocalFilter"
-      >
-        <option value="">Zone</option>
-        <option value="TOP">TOP</option>
-        <option value="MIDDLE">MIDDLE</option>
-        <option value="BOTTOM">BOTTOM</option>
-      </select>
-
-      <input
-          v-model="filters.from"
-          type="date"
-          class="px-3 py-2 rounded bg-slate-900 border border-slate-700 text-sm"
-          @change="load"
-      />
-
-      <input
-          v-model="filters.to"
-          type="date"
-          class="px-3 py-2 rounded bg-slate-900 border border-slate-700 text-sm"
-          @change="load"
-      />
-    </div>
-
-    <!-- Tabela -->
-    <div class="overflow-x-auto border border-slate-700 rounded-lg">
-      <table class="w-full text-sm">
-        <thead class="bg-slate-900/80">
-        <tr>
-          <th class="p-2 text-left">Data/Hora</th>
-          <th class="p-2 text-left">Máquina</th>
-          <th class="p-2 text-right">Peel (N)</th>
-          <th class="p-2 text-left">Cell type</th>
-          <th class="p-2 text-left">Zone</th>
-          <th class="p-2 text-left">Ribbon type</th>
-          <th class="p-2 text-left">Ribbon batch</th>
-          <th class="p-2 text-left">Flux</th>
-          <th class="p-2 text-left">Operador</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr
-            v-for="m in filteredList"
-            :key="m.id"
-            class="border-t border-slate-700 hover:bg-slate-800/60"
-        >
-          <td class="p-2">
-            {{ formatDateTime(m.measurement_datetime || m.measurementDatetime) }}
-          </td>
-          <td class="p-2">
-            {{ m.Machine?.code }} - {{ m.Machine?.name }}
-          </td>
-          <td class="p-2 text-right font-semibold">
-            {{ m.value_n?.toFixed?.(2) ?? m.value_n ?? m.valueN }}
-          </td>
-          <td class="p-2">
-            {{ m.cell_type || m.cellType || '-' }}
-          </td>
-          <td class="p-2">
-            {{ m.zone || '-' }}
-          </td>
-          <td class="p-2">
-            {{ m.ribbon_type || m.ribbonType || '-' }}
-          </td>
-          <td class="p-2">
-            {{ m.ribbon_batch || m.ribbonBatch || '-' }}
-          </td>
-          <td class="p-2">
-            {{ m.flux_type || m.fluxType || '-' }}
-          </td>
-          <td class="p-2">
-            {{ m.User?.name || '-' }}
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Modal: nova medição -->
-    <div
-        v-if="showForm"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+    <!-- Filters -->
+    <section
+        class="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-4 shadow-sm shadow-black/30"
     >
-      <div class="bg-slate-900 rounded-lg shadow-xl w-full max-w-xl p-6 space-y-4">
-        <div class="flex justify-between items-center mb-2">
-          <h2 class="text-xl font-semibold">Nova Medição de Peel Force</h2>
-          <button class="text-slate-400 hover:text-white" @click="closeForm">✕</button>
+      <h2 class="mb-3 text-sm font-semibold text-zinc-200">Filters</h2>
+      <div class="grid gap-3 md:grid-cols-4">
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-medium text-zinc-400">Machine</label>
+          <select
+              v-model="filters.machineId"
+              class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm
+                   text-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="">All</option>
+            <option
+                v-for="m in machines"
+                :key="m.id"
+                :value="m.id"
+            >
+              {{ m.name ?? `Machine #${m.id}` }}
+            </option>
+          </select>
         </div>
 
-        <form @submit.prevent="submitPeelForce" class="space-y-3 text-sm">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label class="block mb-1">Máquina *</label>
-              <select
-                  v-model="form.machineId"
-                  required
-                  class="w-full px-3 py-2 rounded bg-slate-800 border border-slate-600"
-              >
-                <option value="">Selecionar</option>
-                <option v-for="m in machinesStore.list" :key="m.id" :value="m.id">
-                  {{ m.code }} - {{ m.name }}
-                </option>
-              </select>
-            </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-medium text-zinc-400">From</label>
+          <input
+              v-model="filters.from"
+              type="date"
+              class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm
+                   text-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
 
-            <div>
-              <label class="block mb-1">Datetime</label>
-              <input
-                  v-model="form.measurementDatetime"
-                  type="datetime-local"
-                  class="w-full px-3 py-2 rounded bg-slate-800 border border-slate-600"
-              />
-            </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-medium text-zinc-400">To</label>
+          <input
+              v-model="filters.to"
+              type="date"
+              class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm
+                   text-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
 
-            <div>
-              <label class="block mb-1">Peel force (N) *</label>
-              <input
-                  v-model.number="form.valueN"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  class="w-full px-3 py-2 rounded bg-slate-800 border border-slate-600"
-                  required
-              />
-            </div>
-
-            <div>
-              <label class="block mb-1">Cell type</label>
-              <select
-                  v-model="form.cellType"
-                  class="w-full px-3 py-2 rounded bg-slate-800 border border-slate-600"
-              >
-                <option value="">-</option>
-                <option value="PERC">PERC</option>
-                <option value="TOPCON">TOPCON</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block mb-1">Zone</label>
-              <select
-                  v-model="form.zone"
-                  class="w-full px-3 py-2 rounded bg-slate-800 border border-slate-600"
-              >
-                <option value="">-</option>
-                <option value="TOP">TOP</option>
-                <option value="MIDDLE">MIDDLE</option>
-                <option value="BOTTOM">BOTTOM</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div>
-              <label class="block mb-1">Ribbon type</label>
-              <input
-                  v-model="form.ribbonType"
-                  type="text"
-                  placeholder="0.5x0.2 CuSn"
-                  class="w-full px-3 py-2 rounded bg-slate-800 border border-slate-600"
-              />
-            </div>
-            <div>
-              <label class="block mb-1">Ribbon batch</label>
-              <input
-                  v-model="form.ribbonBatch"
-                  type="text"
-                  placeholder="L123456"
-                  class="w-full px-3 py-2 rounded bg-slate-800 border border-slate-600"
-              />
-            </div>
-            <div>
-              <label class="block mb-1">Flux type</label>
-              <input
-                  v-model="form.fluxType"
-                  type="text"
-                  placeholder="Alpha X, no-clean..."
-                  class="w-full px-3 py-2 rounded bg-slate-800 border border-slate-600"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label class="block mb-1">Notas</label>
-            <textarea
-                v-model="form.operatorNotes"
-                rows="2"
-                class="w-full px-3 py-2 rounded bg-slate-800 border border-slate-600"
-            ></textarea>
-          </div>
-
-          <div class="flex justify-end gap-2 pt-3">
-            <button
-                type="button"
-                class="px-4 py-2 rounded border border-slate-600 text-sm"
-                @click="closeForm"
-            >
-              Cancelar
-            </button>
-            <button
-                type="submit"
-                class="px-4 py-2 rounded bg-blue-600 text-white text-sm"
-                :disabled="submitting"
-            >
-              {{ submitting ? 'A guardar...' : 'Guardar' }}
-            </button>
-          </div>
-        </form>
+        <div class="flex items-end">
+          <button
+              type="button"
+              class="inline-flex w-full items-center justify-center rounded-lg
+                   bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950
+                   shadow-sm hover:bg-emerald-400 focus:outline-none
+                   focus:ring-2 focus:ring-emerald-500"
+              @click="applyFilters"
+          >
+            Apply filters
+          </button>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <div v-if="peelStore.loading" class="text-sm text-slate-400">
-      A carregar medições...
-    </div>
-    <div v-if="peelStore.error" class="text-sm text-red-400">
-      {{ peelStore.error }}
-    </div>
+    <!-- Summary -->
+    <section class="grid gap-4 md:grid-cols-4">
+      <div
+          class="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-4 text-sm text-zinc-200"
+      >
+        <div class="text-xs text-zinc-400">Total tests</div>
+        <div class="mt-1 text-2xl font-semibold">
+          {{ stats.count }}
+        </div>
+      </div>
+
+      <div
+          class="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-4 text-sm text-zinc-200"
+      >
+        <div class="text-xs text-zinc-400">Average peel force (N)</div>
+        <div class="mt-1 text-2xl font-semibold">
+          {{ stats.avg ? stats.avg.toFixed(2) : '-' }}
+        </div>
+      </div>
+
+      <div
+          class="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-4 text-sm text-zinc-200"
+      >
+        <div class="text-xs text-zinc-400">Minimum (N)</div>
+        <div class="mt-1 text-2xl font-semibold">
+          {{ stats.min != null ? stats.min.toFixed(2) : '-' }}
+        </div>
+      </div>
+
+      <div
+          class="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-4 text-sm text-zinc-200"
+      >
+        <div class="text-xs text-zinc-400">Maximum (N)</div>
+        <div class="mt-1 text-2xl font-semibold">
+          {{ stats.max != null ? stats.max.toFixed(2) : '-' }}
+        </div>
+      </div>
+    </section>
+
+    <!-- Table -->
+    <section
+        class="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-4 shadow-sm shadow-black/30"
+    >
+      <div class="mb-3 flex items-center justify-between gap-2">
+        <h2 class="text-sm font-semibold text-zinc-200">Registered peel force tests</h2>
+        <span v-if="loading" class="text-xs text-zinc-400">Loading…</span>
+      </div>
+
+      <div
+          v-if="error"
+          class="mb-3 rounded-lg bg-red-900/40 px-3 py-2 text-xs text-red-100"
+      >
+        {{ error }}
+      </div>
+
+      <div
+          v-if="!loading && !list.length"
+          class="rounded-lg bg-zinc-900/80 px-4 py-6 text-sm text-zinc-400"
+      >
+        No peel force tests found for these filters.
+      </div>
+
+      <div v-else class="overflow-x-auto">
+        <table class="min-w-full text-left text-xs">
+          <thead class="border-b border-zinc-800 text-zinc-400">
+          <tr>
+            <th class="px-3 py-2 font-medium">Test date</th>
+            <th class="px-3 py-2 font-medium">Machine</th>
+            <th class="px-3 py-2 font-medium">Cell type</th>
+            <th class="px-3 py-2 font-medium">Ribbon</th>
+            <th class="px-3 py-2 font-medium">Flux</th>
+            <th class="px-3 py-2 font-medium">Peel force (N)</th>
+            <th class="px-3 py-2 font-medium">Description</th>
+            <th class="px-3 py-2 font-medium">Notes</th>
+          </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-900 text-zinc-100">
+          <tr
+              v-for="row in list"
+              :key="row.id"
+              class="hover:bg-zinc-900/60 cursor-pointer"
+              @click="goToDetail(row)"
+          >
+          <td class="px-3 py-2">
+              {{ formatDate(row.measurementDatetime ?? row.measurement_datetime) }}
+            </td>
+            <td class="px-3 py-2">
+              {{ row.Machine?.name ?? row.machineName ?? `#${row.machineId ?? row.machine_id}` }}
+            </td>
+            <td class="px-3 py-2">
+              {{ row.cellType ?? row.cell_type ?? '-' }}
+            </td>
+            <td class="px-3 py-2">
+              <div class="flex flex-col">
+                <span>{{ row.ribbonType ?? row.ribbon_type ?? '-' }}</span>
+                <span
+                    v-if="row.ribbonBatch ?? row.ribbon_batch"
+                    class="text-[10px] text-zinc-400"
+                >
+                    Batch: {{ row.ribbonBatch ?? row.ribbon_batch }}
+                  </span>
+              </div>
+            </td>
+            <td class="px-3 py-2">
+              {{ row.fluxType ?? row.flux_type ?? '-' }}
+            </td>
+            <td class="px-3 py-2 font-semibold">
+              {{
+                (row.valueN ?? row.value_n)?.toFixed
+                    ? (row.valueN ?? row.value_n).toFixed(2)
+                    : row.valueN ?? row.value_n
+              }}
+            </td>
+            <td class="px-3 py-2 max-w-xs">
+                <span class="text-[11px] text-zinc-300">
+                  Test on
+                  {{ formatDate(row.measurementDatetime ?? row.measurement_datetime) }}
+                  · Machine:
+                  {{ row.Machine?.name ?? row.machineName ?? `#${row.machineId ?? row.machine_id}` }}
+                  · Cell:
+                  {{ row.cellType ?? row.cell_type ?? '-' }}
+                  · Ribbon:
+                  {{ row.ribbonType ?? row.ribbon_type ?? '-' }}
+                  · Flux:
+                  {{ row.fluxType ?? row.flux_type ?? '-' }}
+                </span>
+            </td>
+            <td class="px-3 py-2 max-w-xs">
+                <span class="line-clamp-2 text-[11px] text-zinc-300">
+                  {{ row.operatorNotes ?? row.operator_notes ?? '' }}
+                </span>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- New test form with grid -->
+    <section
+        v-if="formOpen"
+        class="rounded-2xl border border-emerald-700/60 bg-zinc-950/90 p-4 shadow-md shadow-emerald-900/40"
+    >
+      <div class="mb-3 flex items-center justify-between gap-2">
+        <h2 class="text-sm font-semibold text-zinc-100">
+          New Peel Force test (Ribbon 1 / 5 / 10 · Front &amp; Back)
+        </h2>
+        <button
+            type="button"
+            class="text-xs text-zinc-400 hover:text-zinc-200"
+            @click="formOpen = false"
+        >
+          Close
+        </button>
+      </div>
+
+      <div
+          v-if="formError"
+          class="mb-3 rounded-lg bg-red-900/40 px-3 py-2 text-xs text-red-100"
+      >
+        {{ formError }}
+      </div>
+
+      <!-- Test meta -->
+      <form
+          class="space-y-4"
+          @submit.prevent="submitForm"
+      >
+        <div class="grid gap-3 md:grid-cols-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-zinc-400">Machine *</label>
+            <select
+                v-model="formMeta.machineId"
+                class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm
+                     text-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                required
+            >
+              <option value="" disabled>Select a machine</option>
+              <option
+                  v-for="m in machines"
+                  :key="m.id"
+                  :value="m.id"
+              >
+                {{ m.name ?? `Machine #${m.id}` }}
+              </option>
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-zinc-400">Test date</label>
+            <input
+                v-model="formMeta.measurementDatetime"
+                type="datetime-local"
+                class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm
+                     text-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-zinc-400">Cell type</label>
+            <input
+                v-model="formMeta.cellType"
+                type="text"
+                placeholder="PERC, TOPCon, etc."
+                class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm
+                     text-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-zinc-400">Ribbon type</label>
+            <input
+                v-model="formMeta.ribbonType"
+                type="text"
+                placeholder="0.5 x 0.2 mm"
+                class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm
+                     text-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-zinc-400">Ribbon batch</label>
+            <input
+                v-model="formMeta.ribbonBatch"
+                type="text"
+                class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm
+                     text-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-zinc-400">Flux type</label>
+            <input
+                v-model="formMeta.fluxType"
+                type="text"
+                class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm
+                     text-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-zinc-400">Warehouse temperature (°C)</label>
+            <input
+                v-model.number="formMeta.warehouseTemperature"
+                type="number"
+                step="0.1"
+                class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm
+                     text-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-zinc-400">Machine temperature (°C)</label>
+            <input
+                v-model.number="formMeta.machineTemperature"
+                type="number"
+                step="0.1"
+                class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm
+                     text-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-zinc-400">Machine vacuum</label>
+            <input
+                v-model.number="formMeta.machineVacuum"
+                type="number"
+                step="0.01"
+                placeholder="-0.95"
+                class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm
+                     text-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-medium text-zinc-400">Notes</label>
+          <textarea
+              v-model="formMeta.operatorNotes"
+              rows="2"
+              class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm
+                   text-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+
+        <!-- GRID FRONT -->
+        <div class="space-y-2">
+          <h3 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+            Front (top side of the cell) — 14 points per ribbon
+          </h3>
+          <div class="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950/80 p-3">
+            <table class="min-w-full text-[11px] text-zinc-100">
+              <thead>
+              <tr>
+                <th class="px-2 py-1 text-left font-medium">Ribbon</th>
+                <th
+                    v-for="p in POINTS"
+                    :key="`front-head-${p}`"
+                    class="px-2 py-1 text-center font-medium"
+                >
+                  {{ p }}
+                </th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr
+                  v-for="row in frontGrid"
+                  :key="`front-row-${row.ribbonNumber}`"
+              >
+                <td class="px-2 py-1 font-medium">
+                  {{ row.label }}
+                </td>
+                <td
+                    v-for="(val, idx) in row.points"
+                    :key="`front-${row.ribbonNumber}-${idx}`"
+                    class="px-1 py-1"
+                >
+                  <input
+                      v-model.number="row.points[idx]"
+                      type="number"
+                      step="0.01"
+                      class="w-16 rounded border border-zinc-700 bg-zinc-900 px-1 py-0.5 text-[11px]
+                             text-zinc-50 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- GRID BACK -->
+        <div class="space-y-2">
+          <h3 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+            Back (bottom side of the cell) — 14 points per ribbon
+          </h3>
+          <div class="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950/80 p-3">
+            <table class="min-w-full text-[11px] text-zinc-100">
+              <thead>
+              <tr>
+                <th class="px-2 py-1 text-left font-medium">Ribbon</th>
+                <th
+                    v-for="p in POINTS"
+                    :key="`back-head-${p}`"
+                    class="px-2 py-1 text-center font-medium"
+                >
+                  {{ p }}
+                </th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr
+                  v-for="row in backGrid"
+                  :key="`back-row-${row.ribbonNumber}`"
+              >
+                <td class="px-2 py-1 font-medium">
+                  {{ row.label }}
+                </td>
+                <td
+                    v-for="(val, idx) in row.points"
+                    :key="`back-${row.ribbonNumber}-${idx}`"
+                    class="px-1 py-1"
+                >
+                  <input
+                      v-model.number="row.points[idx]"
+                      type="number"
+                      step="0.01"
+                      class="w-16 rounded border border-zinc-700 bg-zinc-900 px-1 py-0.5 text-[11px]
+                             text-zinc-50 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button
+              type="button"
+              class="rounded-lg border border-zinc-700 px-4 py-2 text-xs font-medium
+                   text-zinc-200 hover:bg-zinc-900"
+              @click="formOpen = false"
+          >
+            Cancel
+          </button>
+          <button
+              type="submit"
+              :disabled="formSubmitting"
+              class="inline-flex items-center justify-center rounded-lg bg-emerald-500
+                   px-4 py-2 text-xs font-semibold text-zinc-950 shadow-sm
+                   hover:bg-emerald-400 disabled:opacity-60"
+          >
+            <span v-if="!formSubmitting">Save test</span>
+            <span v-else>Saving…</span>
+          </button>
+        </div>
+      </form>
+    </section>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { onMounted, ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
 import { usePeelForceStore } from '@/stores/peelForceStore.js';
 import { useMachinesStore } from '@/stores/machinesStore.js';
 
 const peelStore = usePeelForceStore();
-const machinesStore = useMachinesStore();
+const { list, loading, error } = storeToRefs(peelStore);
 
+const machinesStore = useMachinesStore();
+const { list: machines } = storeToRefs(machinesStore);
+
+const router = useRouter();
+
+function goToDetail(row) {
+  router.push({
+    name: 'peel-force-detail',
+    params: { id: row.id },
+  });
+}
+
+
+// filters
 const filters = ref({
   machineId: '',
-  cellType: '',
-  zone: '',
   from: '',
   to: '',
 });
 
-const showForm = ref(false);
-const submitting = ref(false);
+// peel force test meta
+const formOpen = ref(false);
+const formSubmitting = ref(false);
+const formError = ref('');
 
-const form = ref({
+const formMeta = ref({
   machineId: '',
-  valueN: null,
   ribbonType: '',
   ribbonBatch: '',
   fluxType: '',
   cellType: '',
-  zone: '',
-  operatorNotes: '',
   measurementDatetime: '',
+  warehouseTemperature: '',
+  machineTemperature: '',
+  machineVacuum: '',
+  operatorNotes: '',
 });
 
-function formatDateTime(value) {
-  if (!value) return '-';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleString();
-}
+// ribbons and points
+const RIBBONS = [
+  { label: 'Ribbon 1', ribbonNumber: 1 },
+  { label: 'Ribbon 5', ribbonNumber: 5 },
+  { label: 'Ribbon 10', ribbonNumber: 10 },
+];
+const POINTS = Array.from({ length: 14 }, (_, i) => i + 1);
 
-async function load() {
-  const params = {
-    machineId: filters.value.machineId || undefined,
+// grid values (front / back)
+const frontGrid = ref(
+    RIBBONS.map((r) => ({
+      ribbonNumber: r.ribbonNumber,
+      label: r.label,
+      points: POINTS.map(() => ''),
+    })),
+);
+
+const backGrid = ref(
+    RIBBONS.map((r) => ({
+      ribbonNumber: r.ribbonNumber,
+      label: r.label,
+      points: POINTS.map(() => ''),
+    })),
+);
+
+onMounted(async () => {
+  await machinesStore.loadMachines();
+  await peelStore.loadPeelForce();
+});
+
+// summary stats
+const stats = computed(() => {
+  const items = list.value || [];
+  const values = items
+      .map((it) => Number(it.valueN ?? it.value_n))
+      .filter((v) => !Number.isNaN(v));
+
+  if (!values.length) {
+    return {
+      count: items.length,
+      avg: 0,
+      min: null,
+      max: null,
+    };
+  }
+
+  const sum = values.reduce((a, b) => a + b, 0);
+  const avg = sum / values.length;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+
+  return {
+    count: items.length,
+    avg,
+    min,
+    max,
   };
-
-  if (filters.value.from) params.from = `${filters.value.from}T00:00:00`;
-  if (filters.value.to) params.to = `${filters.value.to}T23:59:59`;
-
-  await peelStore.loadPeelForce(params);
-}
-
-const filteredList = computed(() => {
-  return peelStore.list.filter((m) => {
-    if (filters.value.cellType && (m.cell_type || m.cellType) !== filters.value.cellType)
-      return false;
-    if (filters.value.zone && m.zone !== filters.value.zone) return false;
-    return true;
-  });
 });
 
-function applyLocalFilter() {
-  // como o backend só filtra por machineId/from/to,
-  // cellType/zone filtramos aqui em cima (computed).
+async function applyFilters() {
+  await peelStore.loadPeelForce({
+    machineId: filters.value.machineId || undefined,
+    from: filters.value.from || undefined,
+    to: filters.value.to || undefined,
+  });
+}
+
+function openForm() {
+  formOpen.value = true;
+  formError.value = '';
 }
 
 function resetForm() {
-  form.value = {
+  formMeta.value = {
     machineId: '',
-    valueN: null,
     ribbonType: '',
     ribbonBatch: '',
     fluxType: '',
     cellType: '',
-    zone: '',
-    operatorNotes: '',
     measurementDatetime: '',
+    warehouseTemperature: '',
+    machineTemperature: '',
+    machineVacuum: '',
+    operatorNotes: '',
   };
+
+  frontGrid.value = RIBBONS.map((r) => ({
+    ribbonNumber: r.ribbonNumber,
+    label: r.label,
+    points: POINTS.map(() => ''),
+  }));
+  backGrid.value = RIBBONS.map((r) => ({
+    ribbonNumber: r.ribbonNumber,
+    label: r.label,
+    points: POINTS.map(() => ''),
+  }));
 }
 
-function closeForm() {
-  showForm.value = false;
-  resetForm();
-}
+async function submitForm() {
+  formError.value = '';
+  formSubmitting.value = true;
 
-async function submitPeelForce() {
   try {
-    submitting.value = true;
+    const meta = { ...formMeta.value };
 
-    const payload = {
-      machineId: form.value.machineId,
-      valueN: form.value.valueN,
-      ribbonType: form.value.ribbonType || null,
-      ribbonBatch: form.value.ribbonBatch || null,
-      fluxType: form.value.fluxType || null,
-      cellType: form.value.cellType || null,
-      zone: form.value.zone || null,
-      operatorNotes: form.value.operatorNotes || null,
-      measurementDatetime: form.value.measurementDatetime || null,
+    if (!meta.machineId) {
+      formError.value = 'Select a machine.';
+      formSubmitting.value = false;
+      return;
+    }
+
+    // Montar o objeto measurements no formato:
+    // {
+    //   front: { "1": [14], "5": [14], "10": [14] },
+    //   back:  { "1": [14], "5": [14], "10": [14] }
+    // }
+    const measurements = {
+      front: {},
+      back: {},
     };
 
+    // FRONT
+    for (const row of frontGrid.value) {
+      const key = String(row.ribbonNumber); // "1", "5", "10"
+      measurements.front[key] = row.points.map((val) => {
+        if (val === '' || val == null) return null;
+        const num = Number(val);
+        return Number.isNaN(num) ? null : num;
+      });
+    }
+
+    // BACK
+    for (const row of backGrid.value) {
+      const key = String(row.ribbonNumber); // "1", "5", "10"
+      measurements.back[key] = row.points.map((val) => {
+        if (val === '' || val == null) return null;
+        const num = Number(val);
+        return Number.isNaN(num) ? null : num;
+      });
+    }
+
+    // Verificar se há pelo menos um valor numérico
+    const allValues = [
+      ...Object.values(measurements.front).flat(),
+      ...Object.values(measurements.back).flat(),
+    ].filter((v) => typeof v === 'number');
+
+    if (!allValues.length) {
+      formError.value = 'Fill at least one peel force value.';
+      formSubmitting.value = false;
+      return;
+    }
+
+    const payload = {
+      machineId: meta.machineId,
+      ribbonType: meta.ribbonType,
+      ribbonBatch: meta.ribbonBatch,
+      fluxType: meta.fluxType,
+      cellType: meta.cellType,
+      measurementDatetime: meta.measurementDatetime,
+      warehouseTemperature: meta.warehouseTemperature,
+      machineTemperature: meta.machineTemperature,
+      machineVacuum: meta.machineVacuum,
+      operatorNotes: meta.operatorNotes,
+      measurements, // 👈 agora é o objeto correto
+    };
+
+    // se não escolheres data, backend assume "agora"
+    if (!payload.measurementDatetime) {
+      delete payload.measurementDatetime;
+    }
+
     await peelStore.addPeelForce(payload);
-    closeForm();
+    resetForm();
+    formOpen.value = false;
   } catch (err) {
     console.error(err);
-    alert('Erro ao criar medição de peel force');
+    formError.value = 'Error while saving peel force test. Please check the fields.';
   } finally {
-    submitting.value = false;
+    formSubmitting.value = false;
   }
 }
 
-onMounted(async () => {
-  if (!machinesStore.list.length) {
-    await machinesStore.loadMachines();
-  }
-  await load();
-});
+
+function formatDate(raw) {
+  const d = raw ? new Date(raw) : null;
+  if (!d || Number.isNaN(d.getTime())) return '-';
+  return d.toLocaleString();
+}
 </script>

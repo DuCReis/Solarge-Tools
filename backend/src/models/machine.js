@@ -25,7 +25,7 @@ export default (sequelize, DataTypes) => {
             defaultValue: true,
         },
     }, {
-        tableName: 'Machines',
+        tableName: 'machines',
         underscored: true,
     });
 

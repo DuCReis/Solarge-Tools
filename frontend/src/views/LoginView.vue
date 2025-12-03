@@ -66,10 +66,7 @@ async function submit() {
   error.value = '';
 
   try {
-    await auth.login({
-      email: email.value,
-      password: password.value,
-    });
+    await auth.login(email.value, password.value);
 
     // ⬇️ ESTA LINHA É A IMPORTANTE
     await router.push({ name: 'dashboard' }); // ou '/dashboard'

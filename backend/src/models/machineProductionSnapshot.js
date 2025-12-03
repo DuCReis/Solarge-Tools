@@ -11,12 +11,12 @@ export default (sequelize, DataTypes) => {
             },
 
             machine_id: {
-                type: DataTypes.INTEGER.UNSIGNED,
+                type: DataTypes.BIGINT.UNSIGNED,
                 allowNull: false,
             },
 
             operator_id: {
-                type: DataTypes.INTEGER.UNSIGNED,
+                type: DataTypes.BIGINT.UNSIGNED,
                 allowNull: true,
             },
 
@@ -27,11 +27,10 @@ export default (sequelize, DataTypes) => {
             },
 
             shift: {
-                type: DataTypes.STRING(16), // ex: A, B, C, NIGHT, etc.
+                type: DataTypes.STRING(16),
                 allowNull: true,
             },
 
-            // Contagem de produção
             total_strings: {
                 type: DataTypes.INTEGER.UNSIGNED,
                 allowNull: true,
@@ -43,7 +42,6 @@ export default (sequelize, DataTypes) => {
                 defaultValue: 0,
             },
 
-            // Rejeições por categoria
             rejected_mc: {
                 type: DataTypes.INTEGER.UNSIGNED,
                 allowNull: true,
@@ -70,7 +68,6 @@ export default (sequelize, DataTypes) => {
                 defaultValue: 0,
             },
 
-            // Strings boas rejeitadas pelo sistema / operador
             good_rejected: {
                 type: DataTypes.INTEGER.UNSIGNED,
                 allowNull: true,
@@ -83,7 +80,7 @@ export default (sequelize, DataTypes) => {
             },
         },
         {
-            tableName: 'machineproductionsnapshots', // bate com o que já tens na DB
+            tableName: 'machineproductionsnapshots',
             underscored: true,
             timestamps: true,
             createdAt: 'created_at',
@@ -93,19 +90,28 @@ export default (sequelize, DataTypes) => {
 
     MachineProductionSnapshot.associate = (models) => {
         MachineProductionSnapshot.belongsTo(models.Machine, {
-            foreignKey: 'machine_id',
-            as: 'Machine',
+            foreignKey: {
+                name: 'machine_id',
+                allowNull: false,
+            },
+            as: 'machine',
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
         });
 
         MachineProductionSnapshot.belongsTo(models.User, {
-            foreignKey: 'operator_id',
-            as: 'Operator',
+            foreignKey: {
+                name: 'operator_id',
+                allowNull: true,
+            },
+            as: 'operator', // eu punha lowercase por consistência
+            onDelete: 'SET NULL',
+            onUpdate: 'CASCADE',
         });
 
-        // Uma snapshot pode ter várias StringRejections ligadas
         MachineProductionSnapshot.hasMany(models.StringRejection, {
             foreignKey: 'snapshot_id',
-            as: 'StringRejections',
+            as: 'stringRejections', // idem, camelCase mais padrão
         });
     };
 

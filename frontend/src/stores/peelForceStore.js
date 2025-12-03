@@ -1,15 +1,32 @@
 // frontend/src/stores/peelForceStore.js
 import { defineStore } from 'pinia';
-import { fetchPeelForce, createPeelForce } from '@/api/peelForce.js';
+import { fetchPeelForce, createPeelForce, fetchPeelForceById } from '@/api/peelForce.js';
+
 
 export const usePeelForceStore = defineStore('peelForce', {
     state: () => ({
         list: [],
+        current: null,
         loading: false,
         error: null,
     }),
 
     actions: {
+        async loadPeelForceById(id) {
+            this.loading = true;
+            this.error = null;
+            try {
+                this.current = await fetchPeelForceById(id);
+                return this.current;
+            } catch (err) {
+                console.error(err);
+                this.error = 'Error loading peel force test.';
+                throw err;
+            } finally {
+                this.loading = false;
+            }
+        },
+
         async loadPeelForce(filters = {}) {
             this.loading = true;
             this.error = null;

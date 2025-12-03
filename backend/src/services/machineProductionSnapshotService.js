@@ -50,8 +50,8 @@ export async function listMachineProductionSnapshots(filters = {}, pagination = 
     const options = {
         where,
         include: [
-            { model: db.Machine, as: 'Machine', attributes: ['id', 'name', 'code'] },
-            { model: db.User, as: 'Operator', attributes: ['id', 'name'] },
+            { model: db.Machine, as: 'machine', attributes: ['id', 'name', 'code'] },
+            { model: db.User, as: 'operator', attributes: ['id', 'name'] },
         ],
         order: [['snapshot_datetime', 'DESC']],
     };
@@ -65,8 +65,8 @@ export async function listMachineProductionSnapshots(filters = {}, pagination = 
 export async function getMachineProductionSnapshotById(id) {
     return db.MachineProductionSnapshot.findByPk(id, {
         include: [
-            { model: db.Machine, as: 'Machine', attributes: ['id', 'name', 'code'] },
-            { model: db.User, as: 'Operator', attributes: ['id', 'name'] },
+            { model: db.Machine, as: 'machine', attributes: ['id', 'name', 'code'] },
+            { model: db.User, as: 'operator', attributes: ['id', 'name'] },
             {
                 model: db.StringRejection,
                 as: 'StringRejections',

@@ -1,3 +1,4 @@
+<!-- frontend/src/pages/stringer/PeelForcePage.vue -->
 <template>
   <div class="space-y-4">
     <!-- Header -->
