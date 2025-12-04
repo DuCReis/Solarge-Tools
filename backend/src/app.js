@@ -9,7 +9,6 @@ import snapshotRoutes from './routes/machineProductionSnapshotRoutes.js';
 import machineRecipeChangeRoutes from './routes/machineRecipeChangeRoutes.js';
 import maintenanceRoutes from './routes/machineMaintenanceRoutes.js';
 import ribbonSpoolRoutes from './routes/ribbonSpoolRoutes.js';
-import layupEventRoutes from './routes/layupEventRoutes.js';
 
 
 
@@ -30,7 +29,6 @@ app.use('/api/snapshots', snapshotRoutes);
 app.use('/api/recipe-changes', machineRecipeChangeRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api/ribbon-spools', ribbonSpoolRoutes);
-app.use('/api/layup-events', layupEventRoutes);
 
 
 db.sequelize.authenticate()

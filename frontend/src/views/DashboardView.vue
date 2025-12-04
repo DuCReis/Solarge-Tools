@@ -39,16 +39,6 @@
           Inclui MC, UPS, RM, BC, Good rejected, etc.
         </p>
       </div>
-
-      <div class="rounded-lg border border-slate-700 bg-slate-900/70 p-4">
-        <p class="text-xs text-slate-400 uppercase tracking-wide">Layup events</p>
-        <p class="mt-2 text-3xl font-semibold">
-          {{ layupEventsCount }}
-        </p>
-        <p class="mt-1 text-xs text-slate-500">
-          Skew, missing mesh, wrong cell e outros.
-        </p>
-      </div>
     </div>
 
     <!-- Últimos eventos agregados -->
@@ -117,19 +107,16 @@ import { computed, onMounted } from 'vue';
 import { useMachinesStore } from '@/stores/machinesStore.js';
 import { usePeelForceStore } from '@/stores/peelForceStore.js';
 import { useRejectionsStore } from '@/stores/stringRejectionsStore.js';
-import { useLayupEventsStore } from '@/stores/layupEventsStore.js';
 import {useAuthStore} from "@/stores/authStore.js";
 
 const machinesStore = useMachinesStore();
 const peelStore = usePeelForceStore();
 const rejectionsStore = useRejectionsStore();
-const layupEventsStore = useLayupEventsStore();
 
 // KPIs simples
 const machinesCount = computed(() => machinesStore.list.length || 0);
 const peelCount = computed(() => peelStore.list.length || 0);
 const rejectionsCount = computed(() => rejectionsStore.list.length || 0);
-const layupEventsCount = computed(() => layupEventsStore.list.length || 0);
 
 const auth = useAuthStore();
 
@@ -164,20 +151,6 @@ const lastEvents = computed(() => {
       machineName: r.Machine?.name || '',
       operatorName: r.User?.name || null,
       description: `${r.category} (${r.source})` + (r.side ? ` · ${r.side}` : ''),
-    });
-  }
-
-  // Layup events
-  for (const e of layupEventsStore.list) {
-    items.push({
-      key: `layup-${e.id}`,
-      kind: 'LAYUP',
-      kindLabel: 'Layup event',
-      datetime: e.event_datetime || e.eventDatetime || e.createdAt,
-      machineCode: e.Machine?.code || '',
-      machineName: e.Machine?.name || '',
-      operatorName: e.User?.name || null,
-      description: e.event_type || e.eventType || 'Event',
     });
   }
 
@@ -225,9 +198,6 @@ onMounted(async () => {
   }
   if (!rejectionsStore.list.length) {
     await rejectionsStore.loadRejections({});
-  }
-  if (!layupEventsStore.list.length) {
-    await layupEventsStore.loadEvents({});
   }
 });
 </script>

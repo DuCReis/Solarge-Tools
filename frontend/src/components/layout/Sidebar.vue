@@ -61,7 +61,6 @@ const menu = [
   { name: 'dashboard',         label: 'Dashboard',          to: { name: 'dashboard' } },
   { name: 'peel-force',        label: 'Peel Force',         to: { name: 'peel-force' } },
   { name: 'string-rejections', label: 'String rejections',  to: { name: 'string-rejections' } },
-  { name: 'layup-events',      label: 'Layup events',       to: { name: 'layup-events' } },
   { name: 'snapshots',         label: 'Machine snapshots',  to: { name: 'snapshots' } },
   { name: 'recipe-changes',    label: 'Recipe changes',     to: { name: 'recipe-changes' } },
   { name: 'maintenance',       label: 'Maintenance / Logs', to: { name: 'maintenance' } },

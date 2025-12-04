@@ -8,7 +8,6 @@ import DashboardLayout from '@/layouts/DashboardLayout.vue';
 import DashboardView from '@/views/DashboardView.vue';
 import RejectionsView from '@/views/RejectionsView.vue';
 import PeelForceView from '@/views/PeelForceView.vue';
-import LayupEventsView from '@/views/LayupEventsView.vue';
 import SnapshotsView from '@/views/SnapshotsView.vue';
 import RecipeChangesView from '@/views/RecipeChangesView.vue';
 import MaintenanceView from '@/views/MaintenanceView.vue';
@@ -50,11 +49,6 @@ const router = createRouter({
                     path: 'string-rejections',
                     name: 'string-rejections',
                     component: RejectionsView,
-                },
-                {
-                    path: 'layup-events',
-                    name: 'layup-events',
-                    component: LayupEventsView,
                 },
                 {
                     path: 'snapshots',
